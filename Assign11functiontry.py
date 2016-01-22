@@ -5,10 +5,11 @@
 ## for the user: The script contains code to export to .kml. This section works only in QGIS.0
 
 import os
-import ogr
 from osgeo import ogr, osr
+# set your working directory if necessary:
+os.chdir('/home/user/PythonProjects/assignment1')
 
-# create your output directory and set it as your working directory
+# reset your working directory
 os.chdir('data')
 
 
@@ -27,6 +28,7 @@ layername = "Points"
 
 ## Create shape file
 ds = driver.CreateDataSource(fn)
+print ds.GetRefCount()
 
 ## Set spatial reference
 spatialReference = osr.SpatialReference()
@@ -35,37 +37,34 @@ spatialReference.ImportFromEPSG(4326)
 
 ## Create Layer
 layer=ds.CreateLayer(layername, spatialReference, ogr.wkbPoint)
+print(layer.GetExtent())
 
-## Create a point
-gaia = ogr.Geometry(ogr.wkbPoint)
-roundW = ogr.Geometry(ogr.wkbPoint)
-
-## SetPoint(self, int point, double x, double y, double z = 0)
-gaia.SetPoint(0, 5.6664, 51.9875) 
-roundW.SetPoint(0, 5.6615, 51.9766)
-
-## Feature is defined from properties of the layer
 layerDefinition = layer.GetLayerDefn()
-feature1 = ogr.Feature(layerDefinition)
-feature2 = ogr.Feature(layerDefinition)
-
-## Add the points to the feature
-feature1.SetGeometry(gaia)
-feature2.SetGeometry(roundW)
-
-## Store the feature in a layer
-layer.CreateFeature(feature1)
-layer.CreateFeature(feature2)
 
 
+def pointGeo(pointname, s, x, y):
+    pointname = ogr.Geometry(ogr.wkbPoint)
+    pointname.SetPoint(s, x, y)
+    feature = ogr.Feature(layerDefinition)
+    feature.SetGeometry(pointname)
+    layer.CreateFeature(feature)
+    return layer
+
+print "The new extent"
+print layer.GetExtent()
+
+
+   
 ds.Destroy()
 
-print "Check the shapefile created in your data folder"
+coord1 = [0, 5.6664, 51.9875]
+pointGeo("gaia", coord1[0], coord1[1], coord1[2])
+coord2 = [0, 5.6615, 51.9766]
+pointGeo("round", coord2[0], coord2[1], coord2[2])
 
-## creating the .kml file out of the shapefile
-
-Wageningen = QgsVectorLayer("../data/Wageningen.shp", "Wageningen", "ogr")
+## Exporting it to .kml
+Wageningen = QgsVectorLayer("/home/user/PythonProjects/assignment1/data/Wageningen.shp", "Wageningen", "ogr")
 Wageningen.isValid()
 dest_crs = QgsCoordinateReferenceSystem(4326)
-QgsVectorFileWriter.writeAsVectorFormat(Wageningen, "../data/Wageningen.kml", "utf-8", dest_crs, "KML")
+QgsVectorFileWriter.writeAsVectorFormat(Wageningen, "/home/user/PythonProjects/assignment1/data/Wageningen.kml", "utf-8", dest_crs, "KML")
 
